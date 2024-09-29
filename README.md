@@ -107,7 +107,7 @@ kubectl port-forward pod/django-app-pod 8080:80
 1. Создайте файл yaml файл
 2. Запольните его следующим оброзом 
 ```yaml
-appVersion: v1
+apiVersion: v1
 kind: ConfigMap
 metadata:
     name: django-app-configmap
@@ -153,4 +153,11 @@ minikube addons enable ingress
 kubectl apply -f k8s/k8s-django-app-ingress.yaml
 ```
 Приложение доступна по адресу http://star-burger.test
+## Запуск Очистки сессии(с manifest-файлом)
+```shell
+kubectl delete -f k8s/k8s-django-app-clearsessions.yaml
+```
+Таким оброзом сессия будет чиститься по 1 раз за час.
+
+
 
