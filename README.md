@@ -144,3 +144,20 @@ minikube ip
 ```
 приложение будет доступно по адресу http://$(minikube ip):30080. (http://192.168.49.2:30080)
 
+## Запуск Ingress (с manifest-файлом)
+Необходимо добавить расширение для работы с Ingress
+```shell
+minikube addons enable ingress
+```
+Добавте в переменые среды следующие в ALLOWED_HOSTS `star-burger.test`
+Для запуска проекта в локальной сети также требуется добавить host в dns-запись. Для этого добвте запись в файле /etc/hosts:
+```text 
+# <minikube ip> star-burger.test
+192.168.49.2 star-burger.test
+```
+Запустите:
+```shell
+kubectl apply -f k8s/k8s-django-app-ingress.yaml
+```
+Приложение доступна по адресу http://star-burger.test
+
