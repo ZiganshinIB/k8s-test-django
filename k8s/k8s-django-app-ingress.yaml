@@ -23,8 +23,8 @@ spec:
                   ports:
                     - containerPort: 80
                   envFrom:
-                    - secretRef:
-                        name: django-app-secret
+                    - configMapRef:
+                        name: django-app-configmap
 
 
 ---

@@ -103,37 +103,30 @@ kubectl run django-app-pod --image=elzig1999/django_app --port=8080 --env="SECRE
 kubectl port-forward pod/django-app-pod 8080:80
 ```
 ## Запуск Deploy (с manifest-файлом)
-### Необходимо создать manifest-файл c [secret-файлом](https://kubernetes.io/docs/concepts/configuration/secret/)
+### Необходимо создать manifest-файл c [configMap-данными](https://kubernetes.io/docs/concepts/configuration/secret/)
 1. Создайте файл yaml файл
 2. Запольните его следующим оброзом 
 ```yaml
-apiVersion: v1
-kind: Secret
+appVersion: v1
+kind: ConfigMap
 metadata:
-    name: django-app-secret # Имя секрета
-type: Opaque
+    name: django-app-configmap
 data:
-    DEBUG: ZmFsc2U= # true dHJ1ZQ== # false ZmFsc2U=
-    DATABASE_URL: YOUR_DJANGO_DATABASE_URL_IN_BASE64
-    SECRET_KEY: YOUR_SECRET_KEY_IN_BASE64
-    ALLOWED_HOSTS: YOUR_ALLOWED_HOSTS_IN_BASE64
+    SECRET_KEY: 'REPLACE_ME'
+    ALLOWED_HOSTS: '*'
+    DEBUG: 'false'
+    DATABASE_URL: 'postgres://YOUR_DJANGO_DATABASE_URL'
 ```
 Вы можете определять свои допольнительные переменные окружения
-3. Для кодирования в base 64 используйте `base64` команду и вставьте в `data`
-```shell
-echo -n "YOUR_DJANGO_DATABASE_URL" | base64
-echo -n "YOUR_SECRET_KEY" | base64
-echo -n "YOUR_ALLOWED_HOSTS" | base64
-```
-4. Запустите secret-файл
+3. Запустите configMap-файл
 ```shell
 kubectl apply -f <file_name>
 ```
-5. Запустите deploy-файл
+4. Запустите deploy-файл
 ```shell
 kubectl apply -f k8s/k8s-django-app-deploy.yaml
 ```
-6. Веб приложение доступно с локального устройства
+5. Веб приложение доступно с локального устройства
 Что бы перейти на сайт вам нужно узнать ip-адрес кластера
 ```shell
 minikube ip
