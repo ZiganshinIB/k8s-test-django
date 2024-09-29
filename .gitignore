@@ -5,3 +5,4 @@ __pycache__/
 .env
 env/
 .idea
+k8s/k8s-django-app-secret.yaml

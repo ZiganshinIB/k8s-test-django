@@ -75,3 +75,72 @@ $ docker compose build web
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+# Развертывание на Minikube
+
+Для развертывания на Minikube необходимо установить `minikube` и `kubectl`
+
+## Запуск minikube
+
+```shell
+minikube start --driver=docker
+```
+## Быстрый старт POD в Minikube (в ручную)
+### Запуск POD
+```shell
+kubectl run django-app-pod --image=elzig1999/django_app --port=8080 --env="SECRET_KEY=REPLACE_ME" --env="DATABASE_URL=postgres://..."
+```
+Определите свои переменые среды 
+
+`SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
+
+`DEBUG` -- настройка Django для включения отладочного режима. Принимает значения `TRUE` или `FALSE`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-DEBUG).
+
+`ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
+
+`DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+### Mapping Ports
+```shell
+kubectl port-forward pod/django-app-pod 8080:80
+```
+## Запуск Deploy (с manifest-файлом)
+### Необходимо создать manifest-файл c [secret-файлом](https://kubernetes.io/docs/concepts/configuration/secret/)
+1. Создайте файл yaml файл
+2. Запольните его следующим оброзом 
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: django-app-secret # Имя секрета
+type: Opaque
+data:
+    DEBUG: ZmFsc2U= # true dHJ1ZQ== # false ZmFsc2U=
+    DATABASE_URL: YOUR_DJANGO_DATABASE_URL_IN_BASE64
+    SECRET_KEY: YOUR_SECRET_KEY_IN_BASE64
+    ALLOWED_HOSTS: YOUR_ALLOWED_HOSTS_IN_BASE64
+```
+Вы можете определять свои допольнительные переменные окружения
+3. Для кодирования в base 64 используйте `base64` команду и вставьте в `data`
+```shell
+echo -n "YOUR_DJANGO_DATABASE_URL" | base64
+echo -n "YOUR_SECRET_KEY" | base64
+echo -n "YOUR_ALLOWED_HOSTS" | base64
+```
+4. Запустите secret-файл
+```shell
+kubectl apply -f <file_name>
+```
+5. Запустите deploy-файл
+```shell
+kubectl apply -f k8s/k8s-django-app-deploy.yaml
+```
+6. Веб приложение доступно с локального устройства
+Что бы перейти на сайт вам нужно узнать ip-адрес кластера
+```shell
+minikube ip
+```
+Ответ имеет следующий вид
+```text
+192.168.49.2
+```
+приложение будет доступно по адресу http://$(minikube ip):30080. (http://192.168.49.2:30080)
+
