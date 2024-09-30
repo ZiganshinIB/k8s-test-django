@@ -102,62 +102,171 @@ kubectl run django-app-pod --image=elzig1999/django_app --port=8080 --env="SECRE
 ```shell
 kubectl port-forward pod/django-app-pod 8080:80
 ```
-## Запуск Deploy (с manifest-файлом)
-### Необходимо создать manifest-файл c [configMap-данными](https://kubernetes.io/docs/concepts/configuration/secret/)
-1. Создайте файл yaml файл
-2. Запольните его следующим оброзом 
+## Полное развертывание
+### 1. Необходимо создать secret-manifest c [secret-данными](https://kubernetes.io/docs/concepts/configuration/secret/)
+1. Создайте файл yaml файл 
+2. Запольните его следующим оброзом
 ```yaml
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-    name: django-app-configmap
+    name: django-app-secret # Имя секрета
+type: Opaque
 data:
-    SECRET_KEY: 'REPLACE_ME'
-    ALLOWED_HOSTS: '*'
-    DEBUG: 'false'
-    DATABASE_URL: 'postgres://YOUR_DJANGO_DATABASE_URL'
+    DEBUG: ZmFsc2U= # true dHJ1ZQ== # false ZmFsc2U=
+    DATABASE_URL: YOUR_DJANGO_DATABASE_URL_IN_BASE64
+    SECRET_KEY: YOUR_SECRET_KEY_IN_BASE64
+    ALLOWED_HOSTS: YOUR_ALLOWED_HOSTS_IN_BASE64
 ```
+**ALLOWED_HOSTS** -- это список разрешённых адресов. Рекомендуется использовать `127.0.0.1`, `localhost`, ip address класстера и DNS имя сайта(далее в проекте будем использовать `star-burger.test`).
 Вы можете определять свои допольнительные переменные окружения
-3. Запустите configMap-файл
+3. Для кодирования в base 64 используйте `base64` команду и вставьте в `data`
+```shell
+echo -n "YOUR_DJANGO_DATABASE_URL" | base64
+echo -n "YOUR_SECRET_KEY" | base64
+# тут рекомендуем прописать  "127.0.0.1,localhost,192.168.49.2,star-burger.test"
+echo -n "YOUR_ALLOWED_HOSTS" | base64
+```
+
+
+4. Запустите secret-файл
 ```shell
 kubectl apply -f <file_name>
 ```
-4. Запустите deploy-файл
+### 2. Запуск deploy-manifest
+Для запуска Deploy-файла вам нужно выполнить следующую команду:
 ```shell
-kubectl apply -f k8s/k8s-django-app-deploy.yaml
+kubectl apply -f k8s/deployment.yaml
 ```
-5. Веб приложение доступно с локального устройства
+### 3. Запуск службы для Deploy-файла
+Для запуска службы вам нужно выполнить следующую команду:
+```shell
+kubectl apply -f k8s/service.yaml
+```
+### 4. Запуск Ingress
+Для запуска Ingress вам нужно добавить расширение для работы с Ingress:
+```shell
+minikube addons enable ingress
+```
+Далее нужно собрать Ingress-файл:
+```shell
+kubectl apply -f k8s/ingress.yaml
+```
+Веб приложение доступно с локального устройства
 Что бы перейти на сайт вам нужно узнать ip-адрес кластера
 ```shell
 minikube ip
 ```
-Ответ имеет следующий вид
+Ответ будет иметь следующий вид
 ```text
 192.168.49.2
 ```
-приложение будет доступно по адресу http://$(minikube ip):30080. (http://192.168.49.2:30080)
-
-## Запуск Ingress (с manifest-файлом)
-Необходимо добавить расширение для работы с Ingress
-```shell
-minikube addons enable ingress
-```
-Добавте в переменые среды следующие в ALLOWED_HOSTS `star-burger.test`
 Для запуска проекта в локальной сети также требуется добавить host в dns-запись. Для этого добвте запись в файле /etc/hosts:
 ```text 
 # <minikube ip> star-burger.test
 192.168.49.2 star-burger.test
 ```
-Запустите:
+После всего этого веб приложение будет доступна по адресу http://star-burger.test
+### 5. Запуск миграции
+Для запуска миграции вам нужно выполнить следующую команду:
 ```shell
-kubectl apply -f k8s/k8s-django-app-ingress.yaml
+kubectl apply -f k8s/migrat-job.yaml
 ```
-Приложение доступна по адресу http://star-burger.test
-## Запуск Очистки сессии(с manifest-файлом)
+### 6. Запуск Очистки сессии
+Для запуска очистки сессии вам нужно выполнить следующую команду:
 ```shell
-kubectl delete -f k8s/k8s-django-app-clearsessions.yaml
+kubectl delete -f k8s/clearsessions-cronjob.yaml
 ```
 Таким оброзом сессия будет чиститься по 1 раз за час.
+## Допольнительно
+### Создание базы данных
+Для создания базы данных вам нужно установить [helm](https://helm.sh/ru/)
+Далее с помощью [helm устанавливаем базу данных Postgres](https://artifacthub.io/packages/helm/bitnami/postgresql)
+### Добавление репозитории
+```shell
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+```
+### Установка Postgres
+```shell
+helm install pg-django bitnami/postgresql --version <VERSION> --set auth.postgresPassword=<YOUR_ROOT_PASSWORD>   --set auth.password=<YOUR_PASSWORD>   --set auth.username=<YOUR_USERNAME>  --set auth.database=<YOUR_DATABASE>  
+```
+Где:
+
+`VERSION` - версия postgresql
+
+`YOUR_ROOT_PASSWORD` - пароль для root пользователя
+
+`YOUR_USERNAME` - имя пользователя
+
+`YOUR_PASSWORD` - пароль для пользователя
+
+`YOUR_DATABASE` - название базы данных которую нужно создать
+
+### Измениете secret-файл
+Узнаем имя хоста у базы данных 
+```shell
+kubectl get svc | grep pg-django
+```
+Ответ должен иметь вид
+```text
+NAME                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+pg-django-postgresql      ClusterIP   10.103.84.37   <none>        5432/TCP   2m40s
+pg-django-postgresql-hl   ClusterIP   None           <none>        5432/TCP   2m40s
+```
+Хостом будет `pg-django-postgresql`. Хост имя не меняет 
+Также рекомендуется проверить успешность установки базы данных:
+```shell
+kubectl get pvc | grep data-pg-django
+```
+Результат дожен иметь вид
+```text
+NAME                          STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-pg-django-postgresql-0   Bound    pvc-f5c800d7-58ae-498d-ba0f-6314cc94bef4   8Gi        RWO            standard       <unset>                 7m50s
+``` 
+
+далее нужно изменить в secret-файле строку `DATABASE_URL`
+На результат следующей комманды
+```shell
+echo -n "postgres://<YOUR_USERNAME>:<YOUR_PASSWORD>@pg-django-postgresql:5432/<YOUR_DATABASE>" | base64
+```
+где:
+
+`YOUR_USERNAME` - имя пользователя. Которую вы ранеее указали
+
+`YOUR_PASSWORD` - пароль. Который вы ранеее указали
+
+`YOUR_DATABASE` - название базы данных. Которую вы ранеее указали
+
+### Как Удалить СУБД?
+Для удаления базы данных вам нужно выполнить следующую команду
+```shell
+helm uninstall pg-django
+```
+Но если вы хотите удалить и данные в базе данных, то вам нужно выполнить следующую команду
+```shell
+kubectl delete pvc data-pg-django-postgresql-0
+```
+## Удалить проект из minikube
+Для удаления проекта вам нужно выполнить следующие команды
+```shell
+kubectl delete -f k8s/clearsessions-cronjob.yaml
+kubectl delete -f k8s/ingress.yaml
+kubectl delete -f k8s/service.yaml
+kubectl delete -f k8s/deployment.yaml
+```
+Проверти состояние minikube
+```shell
+kubectl get pods
+kubectl get svc
+kubectl get pvc
+kubectl get cronjobs
+kubectl get ingress
+```
+
+
+
+
 
 
 
