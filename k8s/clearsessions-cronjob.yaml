@@ -14,8 +14,8 @@ spec:
             - name: django-clearsessions
               image: elzig1999/django_app:latest
               envFrom:
-              - configMapRef:
-                  name: django-app-configmap
+              - secretRef:
+                  name: django-app-secret
               command:
                 - "sh"
                 - "-c"

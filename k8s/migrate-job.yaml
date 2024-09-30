@@ -11,8 +11,8 @@ spec:
           image: elzig1999/django_app:latest
           imagePullPolicy: Never
           envFrom:
-            - configMapRef:
-                name: django-app-configmap
+            - secretRef:
+                name: django-app-secret
           command: [ "python",  "manage.py", "makemigrations", "--noinput" ]
       restartPolicy: Never
   backoffLimit: 2
