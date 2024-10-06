@@ -13,6 +13,12 @@
     - [Запуск 1 POD в minikube для локального использования](#запуск-1-pod-в-minikube)
     - [Как запустить Базу Данных в кластере](#как-запустить-базу-данных-в-кластере)
     - [Где и как хранить переменные окружения](#где-и-как-хранить-переменные-окружения)
+    - [Как запустить Deploy файл в кластере](#как-запустить-deploy-файл-в-кластере)
+    - [Как запустить службу в кластере](#как-запустить-службу-в-кластере)
+    - [Как запустить Ingress](#как-запустить-ingress)
+    - [Запуск миграции](#запуск-миграции)
+    - [Запуск Очистки сессии](#запуск-очистки-сессии)
+- [Разработка в Yandex Cloud](#разработка-в-yandex-cloud)
 ## Как подготовить окружение к локальной разработке
 
 Код в репозитории полностью докеризирован, поэтому для запуска приложения вам понадобится Docker. Инструкции по его установке ищите на официальных сайтах:
@@ -271,7 +277,7 @@ minikube ip
 192.168.49.2 star-burger.test
 ```
 После всего этого веб приложение будет доступна по адресу http://star-burger.test
-## Запуск миграции
+### Запуск миграции
 Для запуска миграции вам нужно выполнить следующую команду:
 ```shell
 kubectl apply -f k8s/migrat-job.yaml
@@ -290,6 +296,24 @@ kubectl delete -f k8s/clearsessions-cronjob.yaml
 kubectl delete -f k8s_dev/clearsessions-cronjob.yaml
 ```
 Таким оброзом сессия будет чиститься каждый 1 час
+
+## Разработка в Yandex Cloud
+***Примечание***:
+* В качестве UI для k8s [Lens Desktop](https://k8slens.dev/)
+* Конфигурационный файл для kubectl, будут храниться в `./yc_dev/`
+Для запуска сервиса в yandex cloud необходимо:
+1. Подключиться к кластеру Yandex cloud
+   1. [Установите и инициализируйте интерфейс командной строки Yandex Cloud](https://yandex.cloud/ru/docs/cli/quickstart#install)
+   2. [Добавьте учетные данные](https://yandex.cloud/ru/docs/managed-kubernetes/operations/connect#kubectl-connect) кластера Kubernetes в конфигурационный файл kubectl:
+     ```
+     yc managed-kubernetes cluster get-credentials --id <cluster-id> --external
+     ```
+2. Используйте утилиту kubectl для работы с кластером Kubernetes:
+    ```
+      kubectl get cluster-info
+      kubectl get pods --namespace=<your-namespace>
+    ```
+### Запуск Service и Deployment из манифеста
 
 ## Допольнительно
 ### Как Удалить СУБД?
