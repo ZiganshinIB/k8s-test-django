@@ -19,6 +19,7 @@
     - [Запуск миграции](#запуск-миграции)
     - [Запуск Очистки сессии](#запуск-очистки-сессии)
 - [Разработка в Yandex Cloud](#разработка-в-yandex-cloud)
+    - [Как запустить Deploy файл в Yandex Cloud](#как-запустить-deploy-файл-в-yandex-cloud)
 ## Как подготовить окружение к локальной разработке
 
 Код в репозитории полностью докеризирован, поэтому для запуска приложения вам понадобится Docker. Инструкции по его установке ищите на официальных сайтах:
@@ -313,7 +314,44 @@ kubectl delete -f k8s_dev/clearsessions-cronjob.yaml
       kubectl get cluster-info
       kubectl get pods --namespace=<your-namespace>
     ```
-### Запуск Service и Deployment из манифеста
+### Как запустить Deploy файл в Yandex Cloud
+Для запуска deploy-файла в yandex cloud необходимо:
+1. [Подключиться к кластеру Yandex cloud](#разработка-в-yandex-cloud)
+2. Используйте утилиту kubectl для работы с кластером Kubernetes
+    ```shell
+   kubectl apply -f yc_dev/deployment.yaml
+    ```
+Тем самым вы создаете Deploy с nginx в кластере.
+### Как запустить Службу в Yandex Cloud
+Для запуска службы в yandex cloud необходимо:
+1. [Подключиться к кластеру Yandex cloud](#разработка-в-yandex-cloud)
+2. [Запустить Deploy в кластере(Nginx)](#как-запустить-deploy-файл-в-yandex-cloud)
+3. Узнать свой порт для работы с NodePort (в моем случае 30281). Поменять его в `yc_dev/service.yaml`:
+    ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: nginx-service
+     labels:
+        app.kubernetes.io/component: server
+        app.kubernetes.io/instance: nginx-service
+        app.kubernetes.io/name: nginx
+     spec:
+      ports:
+        - nodePort: 30281 # Порт для работы с NodePort
+          port: 80
+          protocol: TCP
+          targetPort: 80
+      selector:
+        app.kubernetes.io/name: nginx
+      type: NodePort
+   ```
+4. Используйте утилиту kubectl для работы с кластером Kubernetes
+    ```shell
+   kubectl apply -f yc_dev/service.yaml
+    ```
+Теперь ваша приложение будет по ранее выданному домену (в моем случае https://edu-elated-rosalind.sirius-k8s.dvmn.org/)
+
 
 ## Допольнительно
 ### Как Удалить СУБД?

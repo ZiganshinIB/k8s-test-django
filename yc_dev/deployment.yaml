@@ -4,36 +4,22 @@ metadata:
   name: nginx-deploy
   labels:
     app: nginx
-    env: zig
+    app.kubernetes.io/instance: nginx-deploy
+    app.kubernetes.io/name: nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: nginx
-      env: zig
   template:
     metadata:
       labels:
         app: nginx
-        env: zig
+        app.kubernetes.io/instance: nginx-deploy
+        app.kubernetes.io/name: nginx
     spec:
       containers:
       - image: nginx:1.14.2
         name: nginx
         ports:
         - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-spec:
-  ports:
-  - nodePort: 31331
-    port: 80
-    protocol: TCP
-    targetPort: 80
-  selector:
-    app: nginx
-    env: zig
-  type: NodePort
