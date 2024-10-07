@@ -127,8 +127,8 @@ docker run -d -p 5432:5432 --env="POSTGRES_PASSWORD=REPLACE_ME" --env="POSTGRES_
 ```shell
 kubectl run django-app-pod --image=elzig1999/django_app --port=8080 --env="SECRET_KEY=REPLACE_ME" --env="DATABASE_URL=postgres://..."
 ```
-У вас запустися 1 POD с названием `django-app-pod` в локальном кластере minikube.
-Определите свои переменые среды 
+У вас запустится 1 POD с названием `django-app-pod` в локальном кластере minikube.
+Определите свои переменные среды 
 
 `SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
 
@@ -138,7 +138,7 @@ kubectl run django-app-pod --image=elzig1999/django_app --port=8080 --env="SECRE
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
 
-Пробросте порты для получение доступа к приложению с локального устройства.
+Пробросьте порты для получения доступа к приложению с локального устройства.
 ```shell
 kubectl port-forward pod/django-app-pod 8080:80
 ```
@@ -150,7 +150,7 @@ kubectl port-forward pod/django-app-pod 8080:80
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 ```
-Утмновка Postgres в кластере
+Установка Postgres в кластере
 ```shell
 helm install pg-django bitnami/postgresql --version <VERSION> --set auth.postgresPassword=<YOUR_ROOT_PASSWORD>   --set auth.password=<YOUR_PASSWORD>   --set auth.username=<YOUR_USERNAME>  --set auth.database=<YOUR_DATABASE>  
 ```
@@ -164,7 +164,7 @@ helm install pg-django bitnami/postgresql --version <VERSION> --set auth.postgre
 
 `YOUR_DATABASE` - название базы данных которую нужно создать
 
-Что бы узнать имя хоста базы данных в кластере выпольните команду
+Что бы узнать имя хоста базы данных в кластере выполните команду
 ```shell
 kubectl get svc | grep pg-django
 ```
@@ -174,12 +174,12 @@ NAME                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AG
 pg-django-postgresql      ClusterIP   10.103.84.37   <none>        5432/TCP   2m40s
 pg-django-postgresql-hl   ClusterIP   None           <none>        5432/TCP   2m40s
 ```
-Хостом будет `pg-django-postgresql`. Хост имя не меняет 
+Хостом будет `pg-django-postgresql`. Хост имя неизменно.
 Также рекомендуется проверить успешность установки базы данных:
 ```shell
 kubectl get pvc | grep data-pg-django
 ```
-Результат дожен иметь вид
+Результат должен иметь вид
 ```text
 NAME                          STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
 data-pg-django-postgresql-0   Bound    pvc-f5c800d7-58ae-498d-ba0f-6314cc94bef4   8Gi        RWO            standard       <unset>                 7m50s
@@ -189,7 +189,7 @@ data-pg-django-postgresql-0   Bound    pvc-f5c800d7-58ae-498d-ba0f-6314cc94bef4 
 
 ### Где и как хранить переменные окружения
 Создайте файл yaml файл. (Желательно в directory `k8s`-для сборки prod версии или `k8s_dev` для введение разработки)<br>
-Запольните его следующим оброзом:
+Заполните его следующим образом:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -223,19 +223,19 @@ kubectl apply -f <file_name>
 ```
 ### Как запустить Deploy файл в кластере
 ***Примечание***:
-* [запучтите базу данных](#как-запустить-базу-данных-в-кластере)
+* [запустите базу данных](#как-запустить-базу-данных-в-кластере)
 * [создает secret-файл и запустите его в кластере](#где-и-как-хранить-переменные-окружения).
 
-Соберите Deploy-файл (для prod версии используйте `k8s/deployment.yaml`):
+Соберите Deploy-файл (для prod версии используете `k8s/deployment.yaml`):
 ```bash
 kubectl apply -f k8s/deployment.yaml 
 ```
-Или (для dev версии используйте `k8s_dev/deployment.yaml`):
+Или (для dev версии используете `k8s_dev/deployment.yaml`):
 ```bash
 kubectl apply -f k8s_dev/deployment.yaml
 ```
 ### Как запустить службу в кластере
-Соберите службу (для prod версии используйте `k8s/service.yaml` или `k8s_dev/service.yaml`):
+Соберите службу (для prod версии используете `k8s/service.yaml` или `k8s_dev/service.yaml`):
 ```bash
 kubectl apply -f k8s/service.yaml
 ```
@@ -255,7 +255,7 @@ kubectl apply -f k8s_dev/service.yaml
 ```bash
 minikube addons enable ingress
 ```
-Далее нужно собрать Ingress-файл(для prod версии используйте `k8s/ingress.yaml` или `k8s_dev/ingress.yaml`):
+Далее нужно собрать Ingress-файл(для prod версии используете `k8s/ingress.yaml` или `k8s_dev/ingress.yaml`):
 ```bash
 kubectl apply -f k8s/ingress.yaml
 ```
@@ -296,7 +296,7 @@ kubectl delete -f k8s/clearsessions-cronjob.yaml
 ```shell
 kubectl delete -f k8s_dev/clearsessions-cronjob.yaml
 ```
-Таким оброзом сессия будет чиститься каждый 1 час
+Таким образом сессия будет чиститься каждый 1 час
 
 ## Разработка в Yandex Cloud
 ***Примечание***:
@@ -350,10 +350,57 @@ kubectl delete -f k8s_dev/clearsessions-cronjob.yaml
     ```shell
    kubectl apply -f yc_dev/service.yaml
     ```
-Теперь ваша приложение будет по ранее выданному домену (в моем случае https://edu-elated-rosalind.sirius-k8s.dvmn.org/)
+Теперь ваша приложение будет доступна по ранее выданному домену (в моем случае https://edu-elated-rosalind.sirius-k8s.dvmn.org/)
+### Как собрать секреты в Yandex Cloud
+1. Вам необходимо получить SSL ключ. [Инструкция для Yandex Cloud](https://yandex.cloud/ru/docs/managed-postgresql/operations/connect)
+2. Для создания секретов с SSL сертификатами вам необходимо его закодировать в base64.
+   Для этого используйте утилиту `base64`:
+    ```shell
+    base64 -w 0 ~/.postgresql/root.crt
+    ```
+    Далее полученный результат запишите в секрет
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: pg-root-cert # Имя секрета Для дальнейшего использования
+    data:
+        root.crt: <base_64_encoded_data>
+    ```
+    Замените `<base_64_encoded_data>` на полученный результат
 
+    Далее вы можете использовать этот секрет в pode или deploy файле. Следующим образом:
+    ```yaml
+    # ...
+    spec:
+        volumes:
+        - name: secret-volume
+          secret:
+            secretName: pg-root-cert # Необходимо указать имя секрета
+        containers:
+          - image: # ...
+            volumeMounts:
+              - name: secret-volume
+                readOnly: true
+                mountPath: "/root/.postgresql"
+    ```
+    Таким образом он записывает в папку /root/.postgresql файль с SSL сертификатами (название файла будет `root.crt`).
+3. Запустите POD и подключитесь к POD. 
+    ```shell
+    kubectl apply -f yc_dev/ubuntu_test_pg.yaml
+   kubectl exec -it ubuntu -- /bin/bash
+    ```
+4. Подключитесь к базе данных.
+    ```shell
+   psql "host=c-c9qash3nb1v9********.rw.mdb.yandexcloud.net \
+      port=6432 \
+      sslmode=verify-full \
+      dbname=<имя_БД> \
+      user=<имя_пользователя> \
+      target_session_attrs=read-write"
+    ```
 
-## Допольнительно
+## Дополнительно
 ### Как Удалить СУБД?
 Для удаления базы данных вам нужно выполнить следующую команду
 ```shell
