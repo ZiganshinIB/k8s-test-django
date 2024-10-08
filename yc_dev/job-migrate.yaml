@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-jobs
+  labels:
+    app: django-app
+    env: dev
+spec:
+  ttlSecondsAfterFinished: 10
+  template:
+    spec:
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: pg-root-cert
+      containers:
+        - name: migrate-django
+          image: elzig1999/django_app:latest
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: secret-volume
+              readOnly: true
+              mountPath: "/root/.postgresql"
+          envFrom:
+            - secretRef:
+                name: django-app-secret
+          command: [ "python",  "manage.py", "makemigrations", "--noinput" ]
+      restartPolicy: Never
+  backoffLimit: 2

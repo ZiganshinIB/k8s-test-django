@@ -20,6 +20,9 @@
     - [Запуск Очистки сессии](#запуск-очистки-сессии)
 - [Разработка в Yandex Cloud](#разработка-в-yandex-cloud)
     - [Как запустить Deploy файл в Yandex Cloud](#как-запустить-deploy-файл-в-yandex-cloud)
+    - [Как запустить Службу в Yandex Cloud](#как-запустить-службу-в-yandex-cloud)
+    - [Как собрать секреты в Yandex Cloud](#как-собрать-секреты-в-yandex-cloud)
+    - [Запуск проекта в Yandex Cloud](#запуск-проекта-в-yandex-cloud)
 ## Как подготовить окружение к локальной разработке
 
 Код в репозитории полностью докеризирован, поэтому для запуска приложения вам понадобится Docker. Инструкции по его установке ищите на официальных сайтах:
@@ -399,6 +402,18 @@ kubectl delete -f k8s_dev/clearsessions-cronjob.yaml
       user=<имя_пользователя> \
       target_session_attrs=read-write"
     ```
+   
+### Запуск проекта в Yandex Cloud
+1. [Подключиться к кластеру Yandex cloud](#разработка-в-yandex-cloud)
+2. [Создайте секрет](#где-и-как-хранить-переменные-окружения)
+3. [Соберите службу для себя](#как-запустить-службу-в-yandex-cloud)
+
+Соберите проект
+```shell
+kubectl apply -f yc_dev/deployment-django.yaml
+kubectl apply -f yc_dev/service-django.yaml
+```
+
 
 ## Дополнительно
 ### Как Удалить СУБД?
